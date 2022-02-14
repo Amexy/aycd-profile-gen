@@ -1,3 +1,5 @@
 {
-    "geojson_path" : "us/ca/city_of_irvine.geojson"
+    "geojson_path" : "us/ca/city_of_irvine.geojson",
+    "webhook_url" : "",
+    "area_code" : ""
 }

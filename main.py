@@ -80,7 +80,7 @@ def main():
                     print('------Error when parsing name. Ensure you use a first and last name with a space inbetween------')
                 print(f"Using email: ------{email}------")
             phone_number = phn()
-            geojson_path = get_config()
+            geojson_path = get_geojson_path()
             with open(geojson_path) as f:
                 data = json.load(f)
                 street_number = data[n]['properties']['number']
@@ -125,8 +125,17 @@ def main():
     # open folder with file
     subprocess.Popen(f'explorer /select,{full_file_path}')
 
+    from discord_webhook import DiscordWebhook
+    webhook_url = get_webhook()
+    webhook = DiscordWebhook(url=webhook_url,username='AYCD Profile Gen', rate_limit_retry=True)
+    with open (full_file_path) as f:
+        webhook.add_file(file=f.read(), filename=file_name)
+    response=webhook.execute()
+
 def phn():
-    area_code = '314'
+    with open ('config/config.json') as r:
+        r = json.load(r)
+        area_code = r["area_code"]
     n = '0000000'
     while '9' in n[3:6] or n[3:6]=='000' or n[6]==n[7]==n[8]==n[9]:
         n = str(random.randint(10**9, 10**10-1))
@@ -150,10 +159,16 @@ def get_cards():
             rows.append(row)
     return rows
 
-def get_config():
+def get_geojson_path():
     with open ('config/config.json') as r:
         r = json.load(r)
         geojson_path = r["geojson_path"]
     return geojson_path
+
+def get_webhook():
+    with open ('config/config.json') as r:
+        r = json.load(r)
+        webhook_url = r["webhook_url"]
+    return webhook_url
 
 main()

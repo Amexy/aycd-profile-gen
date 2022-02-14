@@ -10,6 +10,7 @@ DM me on Discord at `Josh#1373` or open a Github issue
 1. Python3+ (https://www.python.org/downloads/)
 2. AYCD (aycd.io)
 3. geojson file from https://batch.openaddresses.io/data
+4. Discord webhook (https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks)
 
 # Running the script
 1. See Installation section
@@ -57,4 +58,4 @@ DM me on Discord at `Josh#1373` or open a Github issue
 
     b. Rename `sample_cards.csv` to `cards.csv` and enter card info you'd like to use. Leave blank if you'll enter card data from within AYCD
 
-    c. Rename `sample_config.json` to `config.json` and enter the filename you downloaded in step 3a
+    c. Rename `sample_config.json` to `config.json` and enter the `filename` you downloaded in step 3a, a `valid discord webhook URL` (https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks), and a `3 digit area code`
