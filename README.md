@@ -36,15 +36,18 @@ DM me on Discord at `Josh#1373` or open a Github issue
 
 7. The profiles will appear under the `GoogleForm-Import` category
 # Installation
-1. Ensure you have python3 or higher installed (I use 3.10)
+1. Download the code as a ZIP and extract it to the folder of your choosing
+
+    ![](https://i.imgur.com/yHV2utr.png)
+2. Ensure you have python3 or higher installed (I use 3.10)
 
     https://www.python.org/downloads/
 
-2. Install required python packages by running 
+3. Install required python packages by running 
 
     `python3 -m pip install -r requirements.txt`
 
-3. Get geojson data
+4. Get geojson data
 
     a. Download geojson data from Openaddresses.io and store in the folder containing `main.py`
     
@@ -52,7 +55,7 @@ DM me on Discord at `Josh#1373` or open a Github issue
 
     c. An example would be `us/ca/city_of_irvine` ![](https://i.imgur.com/pvOyw0q.png)
 
-4. Edit config files
+5. Edit config files
 
     a. Rename `sample_emails.csv` to `emails.csv` and enter a list of emails you'd like to use. Leave blank if using a catchall
 
