@@ -61,7 +61,7 @@ def main():
         writer.writerow(header)
 
         for x in range(0,int(profile_count)):
-            with open ('used_numbers.txt', 'r+',newline='\n') as number_tracker:
+            with open ('config/used_numbers.txt', 'r+',newline='\n') as number_tracker:
                 lines = number_tracker.readlines()
                 n = random.randint(1,500000)
                 valid = False
@@ -134,7 +134,7 @@ def phn():
 
 def get_emails():
     rows = []
-    with open('emails.csv','r') as file:
+    with open('config/emails.csv','r') as file:
         csvreader = csv.reader(file)
         header = next(csvreader)
         for row in csvreader:
@@ -143,7 +143,7 @@ def get_emails():
 
 def get_cards():
     rows = []
-    with open('cards.csv','r') as file:
+    with open('config/cards.csv','r') as file:
         csvreader = csv.reader(file)
         header = next(csvreader)
         for row in csvreader:
@@ -151,7 +151,7 @@ def get_cards():
     return rows
 
 def get_config():
-    with open ('config.json') as r:
+    with open ('config/config.json') as r:
         r = json.load(r)
         geojson_path = r["geojson_path"]
     return geojson_path
