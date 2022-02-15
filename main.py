@@ -3,18 +3,22 @@ from cgi import test
 import random, json, csv, pycard, os, subprocess, re
 from datetime import datetime
 from discord_webhook import DiscordWebhook
+from colorama import init, Fore, Back, Style
+
+# Initializes Colorama
+init(autoreset=True,convert=True)
 
 def main():
     if not os.path.exists('profiles'):
         os.makedirs('profiles')
-        print('------Created profiles folder------')
     import_valid_options = ['yes','y','no','n']
     geojson_path = get_geojson_path()
     geojson_data = parse_geojson(geojson_path)
     while True:
-        import_cards_input = input('Would you like to import your own card info?: ')
-        if import_cards_input not in import_valid_options:
-            print("Please enter a value of Yes or No.")
+        print(f"{Fore.YELLOW}Would you like to import your own card info?{Style.RESET_ALL}")
+        import_cards_input = input()
+        if import_cards_input.lower() not in import_valid_options:
+            print(f"{Fore.RED}Please enter a value of Yes or No{Style.RESET_ALL}")
             continue
         else:
             break  
@@ -24,39 +28,47 @@ def main():
         import_cards = False
 
     while True:
-        catchall_input = input('Would you like to use a catchall?: ')
+        print(f"{Fore.YELLOW}Would you like to use a catchall?{Style.RESET_ALL}")
+        catchall_input = input()
         if catchall_input not in import_valid_options:
-            print("Please enter a value of Yes or No.")
+            print(f"{Fore.RED}Please enter a value of Yes or No{Style.RESET_ALL}")
             continue
         else:
             break  
     cards = []
     if catchall_input.lower() in ['yes','y']:
-        use_catchall = True            
-        catchall = input('Enter your catchall (eg. @josh.com): ')
+        use_catchall = True     
+        print(f"{Fore.YELLOW}Enter your catchall (eg. @josh.com){Style.RESET_ALL}")       
+        catchall = input()
     else:
         use_catchall = False
         emails = get_emails()
 
 
-    if import_cards:
+    if import_cards and not use_catchall:
         cards = get_cards()
         profile_count = len(cards)
+        print(f"{Fore.YELLOW}Using the following emails..{Style.RESET_ALL}")
+        for count, email in enumerate(emails):
+            print(f"{count+1}. {email[0]}")
     elif not use_catchall:
         profile_count = len(emails)
+        print(f"{Fore.YELLOW}Using the following emails..{Style.RESET_ALL}")
+        for count, email in enumerate(emails):
+            print(f"{count+1}. {email[0]}")
     elif use_catchall and not import_cards:
-        profile_count = input('How many profiles would you like to make?: ')  
-    
+        print(f"{Fore.YELLOW}How many profiles would you like to make?{Style.RESET_ALL}")
+        profile_count = input()
     try:
         if profile_count != len(cards) and cards:
-            print("Card amount doesn't match email/profile count. Exiting..")
+            print(f"{Fore.RED}Card amount doesn't match email/profile count. Exiting..{Style.RESET_ALL}")
             print(f"Email Count: {profile_count}")
             print(f"Card Count: {len(cards)}")
             os._exit(0)
     except UnboundLocalError:
         print('Not filling anything in for card info')
     
-    print(f"------Creating {profile_count} profiles------")
+    print(f"{Fore.CYAN}Creating {profile_count} profiles{Style.RESET_ALL}")
 
     header = ['Email Address','Profile Name','Only One Checkout','Name on Card','Card Type','Card Number','Expiration Month','Expiration Year','CVV','Same Billing/Shipping','Shipping Name','Shipping Phone','Shipping Address','Shipping Address 2','Shipping Address 3','Shipping Post Code','Shipping City','Shipping State','Shipping Country','Billing Name','Billing Phone','Billing Address','Billing Address 2','Billing Address 3','Billing Post Code','Billing City','Billing State','Billing Country','Size (Optional)']
     file_name = f"profiles_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.csv"
@@ -78,7 +90,8 @@ def main():
                                 break
                         except:
                             continue
-            name = input(f"Enter profile #{x+1} name: ")
+            print(f"{Fore.YELLOW}Enter profile #{x+1} name{Style.RESET_ALL}")
+            name = input()
             if not use_catchall:
                 email = emails[x][0]         
             else:
@@ -87,7 +100,7 @@ def main():
                     email = f"{name_split[0]}.{name_split[1]}{catchall}"
                 except IndexError:
                     print('------Error when parsing name. Ensure you use a first and last name with a space inbetween------')
-                print(f"Using email: ------{email}------")
+                print(f"{Fore.CYAN}Using email: {email}{Style.RESET_ALL}")
             phone_number = phn()
             street_number = geojson_data[n]['properties']['number']
             # some geojson files have a large amount of spaces in the street name
@@ -125,10 +138,10 @@ def main():
             data = [email,name,'TRUE',name,card.friendly_brand,card_no,month,year,cvv,'TRUE',name,phone_number,street_full,'','',zip,city,state,'United States',name,phone_number,street_full,'','',zip,city,state,'United States','']
             writer.writerow(data)
             print('------PROFILE MADE------')
-    print(f"------Finished making {profile_count} profiles------")
+    print(f"{Fore.CYAN}Finished making {profile_count} profiles{Style.RESET_ALL}")
     current_dir = os.getcwd()
     full_file_path = f"{current_dir}\profiles\{file_name}"
-    print(f"------Profile file path: {full_file_path}------")
+    print(f"Profile file path: {full_file_path}")
     # open folder with file
     subprocess.Popen(f'explorer /select,{full_file_path}')
     try:
@@ -137,9 +150,9 @@ def main():
         with open (full_file_path) as f:
             webhook.add_file(file=f.read(), filename=file_name)
         response=webhook.execute()
-        print(f"------Successfully sent file to Discord------")
+        print(f"{Fore.CYAN}Successfully sent file to Discord{Style.RESET_ALL}")
     except:
-        print(f"------Failed sending attachment to Discord.\nFile can be found here: {full_file_path}------")
+        print(f"{Fore.RED}Failed sending attachment to Discord.\nFile can be found here: {full_file_path}{Style.RESET_ALL}")
 
     os.system("pause")
 
@@ -180,17 +193,19 @@ def get_geojson_path():
     if file_paths:
         for counter, file_path, in enumerate(file_paths):
             print(f"{counter+1}. {file_path}")
-        choice = int(input(f"Found {len(file_paths)} files. Which file would you like to use?: "))
+        print(f"{Fore.YELLOW}Found {len(file_paths)} files. Which file would you like to use?{Style.RESET_ALL}")
+        choice = int(input())
         try:
             if file_paths[choice-1]:
                 geojson_path = file_paths[choice-1]
         except IndexError:
-            print('-------Invalid choice. Please restart the program and try again-------')
+            print(f"Invalid choice. Please restart the program and try again-------")
             os.system("pause")
     return geojson_path
 
 def parse_geojson(path):
-    print('Parsing geojson file..')
+    
+    print(f"{Fore.CYAN}Parsing geojson file..{Style.RESET_ALL}")
     with open (path) as path_info:
         data = [json.loads(x) for x in path_info]
     return data
