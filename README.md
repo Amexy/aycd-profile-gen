@@ -43,6 +43,10 @@ DM me on Discord at `Josh#1373` or open a Github issue
 2. Get geojson data
 
     a. Download geojson data from Openaddresses.io and store in the `config` folder 
+        
+        Note: 
+        You'll need to create a free account on their website
+        You'll also need a program like 7zip installed as native Windows zip functions can't extract .tar.gz archives
     
     b. You can find valid sources from https://github.com/openaddresses/openaddresses/tree/master/sources
 
