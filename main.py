@@ -1,12 +1,16 @@
-import random, json, csv, pycard, os, subprocess
+from ast import Index
+from cgi import test
+import random, json, csv, pycard, os, subprocess, re
 from datetime import datetime
+from discord_webhook import DiscordWebhook
 
 def main():
     if not os.path.exists('profiles'):
         os.makedirs('profiles')
         print('------Created profiles folder------')
     import_valid_options = ['yes','y','no','n']
-    
+    geojson_path = get_geojson_path()
+    geojson_data = parse_geojson(geojson_path)
     while True:
         import_cards_input = input('Would you like to import your own card info?: ')
         if import_cards_input not in import_valid_options:
@@ -56,19 +60,24 @@ def main():
 
     header = ['Email Address','Profile Name','Only One Checkout','Name on Card','Card Type','Card Number','Expiration Month','Expiration Year','CVV','Same Billing/Shipping','Shipping Name','Shipping Phone','Shipping Address','Shipping Address 2','Shipping Address 3','Shipping Post Code','Shipping City','Shipping State','Shipping Country','Billing Name','Billing Phone','Billing Address','Billing Address 2','Billing Address 3','Billing Post Code','Billing City','Billing State','Billing Country','Size (Optional)']
     file_name = f"profiles_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.csv"
+    
+    
     with open(f"profiles\{file_name}", 'w+', encoding='UTF8', newline='') as r:
         writer = csv.writer(r)
         writer.writerow(header)
-
         for x in range(0,int(profile_count)):
             with open ('config/used_numbers.txt', 'r+',newline='\n') as number_tracker:
                 lines = number_tracker.readlines()
-                n = random.randint(1,500000)
-                valid = False
-                while not valid:
+                while True:
+                    n = random.randint(1,len(geojson_data))
                     if str(n) not in lines:
                         number_tracker.write(f"{n}" "\n")
-                        valid = True
+                        try:
+                            test_street_num = geojson_data[n]['properties']['number']
+                            if test_street_num:
+                                break
+                        except:
+                            continue
             name = input(f"Enter profile #{x+1} name: ")
             if not use_catchall:
                 email = emails[x][0]         
@@ -80,15 +89,13 @@ def main():
                     print('------Error when parsing name. Ensure you use a first and last name with a space inbetween------')
                 print(f"Using email: ------{email}------")
             phone_number = phn()
-            geojson_path = get_geojson_path()
-            with open(geojson_path) as f:
-                data = json.load(f)
-                street_number = data[n]['properties']['number']
-                street_name = data[n]['properties']['street']
-                city = data[n]['properties']['city']
-                state = data[n]['properties']['region']
-                zip = data[n]['properties']['postcode']
-                street_full = f"{street_number} {street_name}"
+            street_number = geojson_data[n]['properties']['number']
+            # some geojson files have a large amount of spaces in the street name
+            street_name = re.sub(' +', ' ', geojson_data[n]['properties']['street'])
+            city = geojson_data[n]['properties']['city']
+            state = geojson_data[n]['properties']['region']
+            zip = geojson_data[n]['properties']['postcode']
+            street_full = f"{street_number} {street_name}"
             if import_cards:
                 card_no = cards[x][0]
                 month = int(cards[x][1])
@@ -124,13 +131,18 @@ def main():
     print(f"------Profile file path: {full_file_path}------")
     # open folder with file
     subprocess.Popen(f'explorer /select,{full_file_path}')
+    try:
+        webhook_url = get_webhook()
+        webhook = DiscordWebhook(url=webhook_url,username='AYCD Profile Gen', rate_limit_retry=True)
+        with open (full_file_path) as f:
+            webhook.add_file(file=f.read(), filename=file_name)
+        response=webhook.execute()
+        print(f"------Successfully sent file to Discord------")
+    except:
+        print(f"------Failed sending attachment to Discord.\nFile can be found here: {full_file_path}------")
 
-    from discord_webhook import DiscordWebhook
-    webhook_url = get_webhook()
-    webhook = DiscordWebhook(url=webhook_url,username='AYCD Profile Gen', rate_limit_retry=True)
-    with open (full_file_path) as f:
-        webhook.add_file(file=f.read(), filename=file_name)
-    response=webhook.execute()
+    os.system("pause")
+
 
 def phn():
     with open ('config/config.json') as r:
@@ -160,10 +172,28 @@ def get_cards():
     return rows
 
 def get_geojson_path():
-    with open ('config/config.json') as r:
-        r = json.load(r)
-        geojson_path = r["geojson_path"]
+    file_paths = []
+    for root, dirs, files in os.walk(r'config/'):
+        for file in files:
+            if file.endswith('.geojson'):
+                file_paths.append(os.path.join(root, file))
+    if file_paths:
+        for counter, file_path, in enumerate(file_paths):
+            print(f"{counter+1}. {file_path}")
+        choice = int(input(f"Found {len(file_paths)} files. Which file would you like to use?: "))
+        try:
+            if file_paths[choice-1]:
+                geojson_path = file_paths[choice-1]
+        except IndexError:
+            print('-------Invalid choice. Please restart the program and try again-------')
+            os.system("pause")
     return geojson_path
+
+def parse_geojson(path):
+    print('Parsing geojson file..')
+    with open (path) as path_info:
+        data = [json.loads(x) for x in path_info]
+    return data
 
 def get_webhook():
     with open ('config/config.json') as r:

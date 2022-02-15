@@ -5,3 +5,4 @@ emails.csv
 used_numbers.txt
 config.json
 *.geojson
+*.pyc
