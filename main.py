@@ -90,7 +90,7 @@ def main():
                                 break
                         except:
                             continue
-            print(f"{Fore.YELLOW}Enter profile #{x+1} name{Style.RESET_ALL}")
+            print(f"{Fore.YELLOW}Enter billing name #{x+1}{Style.RESET_ALL}")
             name = input()
             if not use_catchall:
                 email = emails[x][0]         
